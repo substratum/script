@@ -116,6 +116,10 @@ esac
 [[ -z ${SUBS_FOLDER} ]] && SUBS_FOLDER=../substratum
 cd ${SUBS_FOLDER}
 
+# Clean the source folder of any generated APKs (as the user may have had
+# them moved into the root of the source from its out location)
+find . -type f -name *.apk -exec rm {} \;
+
 # Update Substratum repo if requested
 if [[ ${UPDATE} = true ]]; then
     # Get current branch
