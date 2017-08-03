@@ -41,6 +41,9 @@ while [[ $# -ge 1 ]]; do
             echo "This is a script to assist with building and releasing
 Substratum APKs from the command line! Here are the options:
 
+    -f | --folder:
+        Specify a source location for Substratum (default is ../substratum)
+
     -i | --install:
         Installs the generated APK to a device plugged into the computer
 
@@ -58,6 +61,12 @@ Substratum APKs from the command line! Here are the options:
         Commit then build with a new version code (takes the numerical value)"
             echo
             exit ;;
+
+        # Specify Substratum source location
+        "-f"|"--folder")
+            shift
+
+            SUBS_FOLDER=${1} ;;
 
         # Install generated APK
         "-i"|"--install")
@@ -102,6 +111,10 @@ case ${TYPE} in
         GRADLE_TASK="assembleDebug"
         COMMIT_TYPE="Internal" ;;
 esac
+
+# We assume Substratum source is in the same parent folder
+[[ -z ${SUBS_FOLDER} ]] && SUBS_FOLDER=../substratum
+cd ${SUBS_FOLDER}
 
 # Update Substratum repo if requested
 if [[ ${UPDATE} = true ]]; then
