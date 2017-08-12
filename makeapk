@@ -282,7 +282,7 @@ APK location: http://download.projektsubstratum.com/APKs/${APK_NAME}"
 
     # Install the APK if requested
     if [[ ${INSTALL} = true ]]; then
-        adb install -r ${MOVE}/${APK_NAME}
+        adb install -r ${MOVE}${APK_NAME}
     fi
 
     echo; echo "Build successful! APK located at: ${MOVE}${APK_NAME}"; echo
