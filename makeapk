@@ -39,26 +39,32 @@ while [[ $# -ge 1 ]]; do
         "-h"|"--help")
             echo
             echo "This is a script to assist with building and releasing
-Substratum APKs from the command line! Here are the options:
+Substratum APKs from the command line! Here are the options (default means without any flag):
 
     -f | --folder:
-        Specify a source location for Substratum (default is ../substratum)
+        Specify a source location for Substratum
+        Default is ../substratum
 
     -i | --install:
         Installs the generated APK to a device plugged into the computer
+        Default is no install
 
     -m | --move:
         Takes a directory as the next parameter
         Moves the APK to the specified directory
+        Default is to the public release folder
 
     -t | --type:
         Takes either release or debug
+        Default is release
 
     -u | --update:
         Update the Substratum repository before building
+        Default is no update
 
     -v | --version:
-        Commit then build with a new version code (takes the numerical value)"
+        Commit then build with a new version code (takes the numerical value). This will also merge the dev branch into release.
+        Default is no version bump"
             echo
             exit ;;
 
