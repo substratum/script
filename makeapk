@@ -49,6 +49,10 @@ Substratum APKs from the command line! Here are the options (default means witho
         Installs the generated APK to a device plugged into the computer
         Default is no install
 
+    -l | --local-changes:
+        Keeps the script from updating the repo; use this if you have local changes you are testing and don't want them overwritten
+        Default is off
+
     -m | --move:
         Takes a directory as the next parameter
         Moves the APK to the specified directory
@@ -57,10 +61,6 @@ Substratum APKs from the command line! Here are the options (default means witho
     -t | --type:
         Takes either release or debug
         Default is release
-
-    -u | --update:
-        Update the Substratum repository before building
-        Default is no update
 
     -v | --version:
         Commit then build with a new version code (takes the numerical value). This will also merge the dev branch into release.
@@ -78,6 +78,10 @@ Substratum APKs from the command line! Here are the options (default means witho
         "-i"|"--install")
             INSTALL=true ;;
 
+        # Don't overwrite local changes
+        "-l"|"--local")
+            LOCALCHANGES=true ;;
+
         # Override move location
         "-m"|"--move")
             shift
@@ -90,10 +94,6 @@ Substratum APKs from the command line! Here are the options (default means witho
             shift
 
             TYPE=${1} ;;
-
-        # Whether to update repo or not before building
-        "-u"|"--update")
-            UPDATE=true ;;
 
         # Whether or not to bump version before building
         "-v"|"--version")
@@ -112,10 +112,12 @@ done
 case ${TYPE} in
     "release")
         COMMIT_TYPE="Public"
-        GRADLE_TASK="assembleRelease" ;;
+        GRADLE_TASK="assembleRelease"
+        BRANCH=release ;;
     "debug")
         GRADLE_TASK="assembleDebug"
-        COMMIT_TYPE="Internal" ;;
+        COMMIT_TYPE="Internal"
+        BRANCH=dev ;;
 esac
 
 # We assume Substratum source is in the same parent folder
@@ -126,22 +128,19 @@ cd ${SUBS_FOLDER}
 # them moved into the root of the source from its out location)
 find ./ -name "*.apk" -type f -exec rm {} \;
 
-# Update Substratum repo if requested
-if [[ ${UPDATE} = true ]]; then
-    # Get current branch
-    BRANCH=$(git rev-parse --abbrev-ref HEAD)
+# Always fetch updates
+git fetch origin
+git checkout ${BRANCH}
 
-    git fetch origin
-    git reset --hard origin/${BRANCH}
-
-    # If this is a fork and the user has an upstream remote set up
-    # Update that as well
-    [[ $( git remote | grep upstream ) ]] && git pull upstream ${BRANCH}
-fi
-
+# Only update if the -l flag was not set
+[[ -z ${LOCALCHANGES} ]] && git reset --hard origin/${BRANCH}
 
 # Bump version if requested (this is so dirty pls no judge)
 if [[ -n ${VERSION_CODE} ]]; then
+    # If this is a release build, first merge the dev branch into release
+    # This should always be a clean merge; the --no-edit flag is just in case
+    [[ ${TYPE} = release ]] && git merge --no-edit origin/dev
+
     # Handle hundreds first
     case "${VERSION_CODE:0:1}" in
         "1")
