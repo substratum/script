@@ -122,7 +122,7 @@ esac
 
 # We assume Substratum source is in the same parent folder
 [[ -z ${SUBS_FOLDER} ]] && SUBS_FOLDER=../substratum
-cd ${SUBS_FOLDER}
+cd "${SUBS_FOLDER}" || die "Substratum folder doesn't exist!"
 
 # Clean the source folder of any generated APKs (as the user may have had
 # them moved into the root of the source from its out location)
@@ -143,90 +143,54 @@ if [[ -n ${VERSION_CODE} ]]; then
 
     # Handle hundreds first
     case "${VERSION_CODE:0:1}" in
-        "1")
-            VERSION_STRING="one hundred" ;;
-        "2")
-            VERSION_STRING="two hundred" ;;
-        "3")
-            VERSION_STRING="three hundred" ;;
-        "4")
-            VERSION_STRING="four hundred" ;;
-        "5")
-            VERSION_STRING="five hundred" ;;
-        "6")
-            VERSION_STRING="six hundred" ;;
-        "7")
-            VERSION_STRING="seven hundred" ;;
-        "8")
-            VERSION_STRING="eight hundred" ;;
-        "9")
-            VERSION_STRING="nine hundred" ;;
+        "1") VERSION_STRING="one hundred" ;;
+        "2") VERSION_STRING="two hundred" ;;
+        "3") VERSION_STRING="three hundred" ;;
+        "4") VERSION_STRING="four hundred" ;;
+        "5") VERSION_STRING="five hundred" ;;
+        "6") VERSION_STRING="six hundred" ;;
+        "7") VERSION_STRING="seven hundred" ;;
+        "8") VERSION_STRING="eight hundred" ;;
+        "9") VERSION_STRING="nine hundred" ;;
     esac
 
     # If the second digit is a 1, we need a separate clause due to the non-uniformity
     if [[ ${VERSION_CODE:1:1} -eq 1 ]]; then
         case "${VERSION_CODE:2:1}" in
-            "0")
-                VERSION_STRING+=" ten" ;;
-            "1")
-                VERSION_STRING+=" eleven" ;;
-            "2")
-                VERSION_STRING+=" twelve" ;;
-            "3")
-                VERSION_STRING+=" thirteen" ;;
-            "4")
-                VERSION_STRING+=" fourteen" ;;
-            "5")
-                VERSION_STRING+=" fifteen" ;;
-            "6")
-                VERSION_STRING+=" sixteen" ;;
-            "7")
-                VERSION_STRING+=" seventeen" ;;
-            "8")
-                VERSION_STRING+=" eighteen" ;;
-            "9")
-                VERSION_STRING+=" nineteen" ;;
+            "0") VERSION_STRING+=" ten" ;;
+            "1") VERSION_STRING+=" eleven" ;;
+            "2") VERSION_STRING+=" twelve" ;;
+            "3") VERSION_STRING+=" thirteen" ;;
+            "4") VERSION_STRING+=" fourteen" ;;
+            "5") VERSION_STRING+=" fifteen" ;;
+            "6") VERSION_STRING+=" sixteen" ;;
+            "7") VERSION_STRING+=" seventeen" ;;
+            "8") VERSION_STRING+=" eighteen" ;;
+            "9") VERSION_STRING+=" nineteen" ;;
         esac
     # Otherwise, we need to handle the second digit then the first
     else
         case "${VERSION_CODE:1:1}" in
-            "2")
-                VERSION_STRING+=" twenty" ;;
-            "3")
-                VERSION_STRING+=" thirty" ;;
-            "4")
-                VERSION_STRING+=" forty" ;;
-            "5")
-                VERSION_STRING+=" fifty" ;;
-            "6")
-                VERSION_STRING+=" sixty" ;;
-            "7")
-                VERSION_STRING+=" seventy" ;;
-            "8")
-                VERSION_STRING+=" eighty" ;;
-            "9")
-                VERSION_STRING+=" ninety" ;;
+            "2") VERSION_STRING+=" twenty" ;;
+            "3") VERSION_STRING+=" thirty" ;;
+            "4") VERSION_STRING+=" forty" ;;
+            "5") VERSION_STRING+=" fifty" ;;
+            "6") VERSION_STRING+=" sixty" ;;
+            "7") VERSION_STRING+=" seventy" ;;
+            "8") VERSION_STRING+=" eighty" ;;
+            "9") VERSION_STRING+=" ninety" ;;
         esac
 
         case "${VERSION_CODE:2:1}" in
-            "1")
-                VERSION_STRING+=" one" ;;
-            "2")
-                VERSION_STRING+=" two" ;;
-            "3")
-                VERSION_STRING+=" three" ;;
-            "4")
-                VERSION_STRING+=" four" ;;
-            "5")
-                VERSION_STRING+=" five" ;;
-            "6")
-                VERSION_STRING+=" six" ;;
-            "7")
-                VERSION_STRING+=" seven" ;;
-            "8")
-                VERSION_STRING+=" eight" ;;
-            "9")
-                VERSION_STRING+=" nine" ;;
+            "1") VERSION_STRING+=" one" ;;
+            "2") VERSION_STRING+=" two" ;;
+            "3") VERSION_STRING+=" three" ;;
+            "4") VERSION_STRING+=" four" ;;
+            "5") VERSION_STRING+=" five" ;;
+            "6") VERSION_STRING+=" six" ;;
+            "7") VERSION_STRING+=" seven" ;;
+            "8") VERSION_STRING+=" eight" ;;
+            "9") VERSION_STRING+=" nine" ;;
         esac
     fi
 
@@ -256,7 +220,7 @@ APK_OUT=$(ls app/build/outputs/apk/main/${TYPE}/*.apk)
 # Don't do anything else in the script if the build failed
 if [[ -f ${APK_OUT} ]]; then
     # Get the APK name for below
-    APK_NAME=$(basename ${APK_OUT})
+    APK_NAME=$(basename "${APK_OUT}")
 
     # Move the APK if it is a release build and tag it
     if [[ ${TYPE} = "release" ]]; then
@@ -264,7 +228,7 @@ if [[ -f ${APK_OUT} ]]; then
         [[ -z ${MOVE} ]] && MOVE=/home/site/public/APKs
 
         # Copy the APK to wherever it needs to go
-        cp ${APK_OUT} ${MOVE}
+        cp "${APK_OUT}" "${MOVE}"
 
         # Only tag if there was a version update (there should be but never know)
         if [[ -n ${VERSION_CODE} ]] && [[ ${MOVE} = /home/site/public/APKs ]]; then
@@ -275,20 +239,18 @@ ${COMMIT_TYPE} release ${VERSION_CODE}
 APK location: http://download.projektsubstratum.com/APKs/${APK_NAME}"
 
             # Push the tag
-            git push origin ${VERSION_CODE}
+            git push origin "${VERSION_CODE}"
         fi
 
     # If MOVE was specified (meaning the APK is debug), move it as well
     elif [[ -n ${MOVE} ]]; then
-        cp ${APK_OUT} ${MOVE}
+        cp "${APK_OUT}" "${MOVE}"
     else
-        cp ${APK_OUT} .
+        cp "${APK_OUT}" .
     fi
 
     # Install the APK if requested
-    if [[ ${INSTALL} = true ]]; then
-        adb install -r ${MOVE}${APK_NAME}
-    fi
+    [[ ${INSTALL} ]] && adb install -r "${MOVE}${APK_NAME}"
 
     echo; echo "Build successful! APK located at: ${MOVE}${APK_NAME}"; echo
 
